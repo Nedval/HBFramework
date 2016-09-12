@@ -131,12 +131,6 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
 
     public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
         
-        if self.unexpected.contains(peripheral.name!) || peripheral.state == .connected {
-            
-            return
-            
-        }
-        
         if _expected.count <= 0 {
             
             print("\rPeripheral: \(peripheral.description)")
@@ -148,7 +142,13 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
         }
         
         guard let name = peripheral.name else {
+            
+            return
+            
+        }
         
+        if self.unexpected.contains(name) || peripheral.state == .connected {
+            
             return
             
         }

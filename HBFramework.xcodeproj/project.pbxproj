@@ -18,6 +18,7 @@
 		1DDA0DBE1D780BD000506A9E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1DDA0DC91D78152700506A9E /* HBCentral.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HBCentral.swift; sourceTree = "<group>"; };
 		1DDA0DCA1D78152700506A9E /* HBPeripheral.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HBPeripheral.swift; sourceTree = "<group>"; };
+		1DDA0DD81D781B2B00506A9E /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -36,6 +37,7 @@
 			children = (
 				1DDA0DBC1D780BD000506A9E /* HBFramework */,
 				1DDA0DBB1D780BD000506A9E /* Products */,
+				1DDA0DD71D781B2B00506A9E /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -56,6 +58,14 @@
 				1DDA0DBE1D780BD000506A9E /* Info.plist */,
 			);
 			path = HBFramework;
+			sourceTree = "<group>";
+		};
+		1DDA0DD71D781B2B00506A9E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1DDA0DD81D781B2B00506A9E /* CoreBluetooth.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

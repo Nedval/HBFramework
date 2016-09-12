@@ -90,7 +90,7 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
 
     public func scan(withServices services: [CBUUID]? = nil, options: [String : AnyObject]? = nil) {
 
-        if _manager.state == .poweredOn {
+        if _manager.state == .poweredOn && !_manager.isScanning {
 
             _manager.scanForPeripherals(withServices: services, options: options)
 
@@ -154,8 +154,6 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
         }
         
         if _expected.contains(name) && _manager.isScanning {
-            
-            _manager.stopScan()
             
             print("\rPeripheral: \(peripheral.description)")
             

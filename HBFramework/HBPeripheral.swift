@@ -23,6 +23,16 @@ open class HBPeripheral: NSObject, CBPeripheralDelegate {
     
     private let _peripheral: CBPeripheral!
     
+    public var peripheral: CBPeripheral {
+    
+        get {
+        
+            return _peripheral
+        
+        }
+        
+    }
+    
     private let _delegate: HBPeripheralDelegate!
     
     private var _communicate_service_uuid: CBUUID? = nil
@@ -49,7 +59,7 @@ open class HBPeripheral: NSObject, CBPeripheralDelegate {
         
         _communicate_characteristic_uuid = characteristic
         
-        self.discoverAllServices()
+        _peripheral.discoverServices([_communicate_service_uuid!])
         
     }
     
@@ -67,7 +77,31 @@ open class HBPeripheral: NSObject, CBPeripheralDelegate {
         
         _peripheral.setNotifyValue(true, for: characteristic)
         
-        _peripheral.writeValue(data, for: characteristic, type: .withResponse)
+        let count = Int(data.count/16)
+        
+        for counter in 0 ... count {
+            
+            let lower = counter * 16
+            
+            var upper = (counter + 1) * 16
+            
+            if data.count < upper {
+            
+                upper = data.count
+                
+            }
+            
+            if lower == upper  {
+            
+                break
+            
+            }
+            
+            _peripheral.writeValue(data.subdata(in: Range(uncheckedBounds: (lower, upper))), for: characteristic, type: .withResponse)
+        
+        }
+        
+        
     
     }
     
@@ -98,6 +132,14 @@ open class HBPeripheral: NSObject, CBPeripheralDelegate {
         for service in services {
             
             _discover![service.uuid] = [:]
+            
+            if let ccuuid = _communicate_characteristic_uuid , _communicate_characteristic == nil && _communicate_service_uuid == service.uuid {
+            
+                peripheral.discoverCharacteristics([ccuuid], for: service)
+                
+                return
+                
+            }
             
             peripheral.discoverCharacteristics(nil, for: service)
             

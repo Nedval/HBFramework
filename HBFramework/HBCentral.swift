@@ -14,6 +14,8 @@ public protocol HBCentralDelegate {
     func readyToScan()
 
     func connected(peripheral: CBPeripheral)
+    
+    func scanningTimeOut(peripherals: Set<String>)
 
 }
 
@@ -28,6 +30,10 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
     private var _connected: [UUID : CBPeripheral] = [:]
 
     private let _delegate: HBCentralDelegate!
+    
+    private let _time_out_interval: TimeInterval!
+    
+    private var _time_out_timer: Timer? = nil
 
     var connected: [UUID : CBPeripheral] {
 
@@ -39,9 +45,11 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
 
     }
 
-    public init(delegate: HBCentralDelegate) {
+    public init(delegate: HBCentralDelegate, timeOutInterval time_out_interval: TimeInterval = 8) {
 
         _delegate = delegate
+        
+        _time_out_interval = time_out_interval
 
         super.init()
 
@@ -71,6 +79,22 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
         print("[\(type(of: self))] Central is not working. (\(_manager))")
 
     }
+    
+    @objc private func _scanningTimeOut() {
+        
+        if _manager.isScanning {
+        
+            _manager.stopScan()
+        
+        }
+        
+        if !_expected.isEmpty {
+    
+            _delegate.scanningTimeOut(peripherals: _expected)
+    
+        }
+        
+    }
 
     public func connect(name: String) {
 
@@ -93,6 +117,8 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
         if _manager.state == .poweredOn && !_manager.isScanning {
 
             _manager.scanForPeripherals(withServices: services, options: options)
+            
+            _time_out_timer = Timer.scheduledTimer(timeInterval: _time_out_interval, target: self, selector: #selector(self._scanningTimeOut), userInfo: nil, repeats: false)
 
         }
 
@@ -155,15 +181,15 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
         
         if _expected.contains(name) && _manager.isScanning {
             
+            _manager.stopScan()
+            
             print("\rPeripheral: \(peripheral.description)")
             
             print("Advertisment: \(advertisementData.description)")
             
             print("RSSI: \(RSSI)\n")
             
-            _connected[peripheral.identifier] = peripheral
-            
-            _manager.connect(_connected[peripheral.identifier]!, options: nil)
+            _manager.connect(peripheral, options: nil)
             
         }
         
@@ -172,6 +198,8 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
     public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
 
         if let name = peripheral.name {
+            
+            _expected.remove(name)
 
             print("\rConnect: \(name) - \(peripheral.identifier.uuidString)\n")
 
@@ -181,6 +209,25 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
             print("\rConnect: \(peripheral.identifier.uuidString)\n")
 
         }
+        
+        if _expected.isEmpty {
+            
+            if let tt = _time_out_timer {
+                
+                tt.invalidate()
+                
+                _time_out_timer = nil
+                
+            }
+            
+        }
+        else {
+            
+            self.scan()
+            
+        }
+        
+        _connected[peripheral.identifier] = peripheral
         
         _delegate.connected(peripheral: peripheral)
 

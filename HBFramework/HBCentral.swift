@@ -28,6 +28,8 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
     var unexpected: Set<String> = []
 
     private var _connected: [UUID : CBPeripheral] = [:]
+    
+    private var _connecting: [UUID : CBPeripheral] = [:]
 
     private let _delegate: HBCentralDelegate!
     
@@ -115,7 +117,7 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
     public func scan(withServices services: [CBUUID]? = nil, options: [String : AnyObject]? = nil) {
 
         if _manager.state == .poweredOn && !_manager.isScanning {
-
+            
             _manager.scanForPeripherals(withServices: services, options: options)
             
             _time_out_timer = Timer.scheduledTimer(timeInterval: _time_out_interval, target: self, selector: #selector(self._scanningTimeOut), userInfo: nil, repeats: false)
@@ -189,6 +191,8 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
             
             print("RSSI: \(RSSI)\n")
             
+            _connecting[peripheral.identifier] = peripheral
+            
             _manager.connect(peripheral, options: nil)
             
         }
@@ -228,6 +232,8 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
         }
         
         _connected[peripheral.identifier] = peripheral
+        
+        _connecting.removeValue(forKey: peripheral.identifier)
         
         _delegate.connected(peripheral: peripheral)
 

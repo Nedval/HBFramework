@@ -12,6 +12,8 @@ import CoreBluetooth
 public protocol HBCentralDelegate {
 
     func readyToScan()
+    
+    func readyForConnect(peripheral: CBPeripheral, willAutoConnect will_auto_connect: Bool)
 
     func connected(peripheral: CBPeripheral)
     
@@ -29,14 +31,16 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
 
     private var _connected: [UUID : CBPeripheral] = [:]
     
-    private var _connecting: [UUID : CBPeripheral] = [:]
+    private var _waiting_for_connect: [UUID : CBPeripheral] = [:]
 
     private let _delegate: HBCentralDelegate!
     
     private let _time_out_interval: TimeInterval!
     
+    private let _auto_connect: Bool
+    
     private var _time_out_timer: Timer? = nil
-
+    
     var connected: [UUID : CBPeripheral] {
 
         get {
@@ -47,11 +51,13 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
 
     }
 
-    public init(delegate: HBCentralDelegate, timeOutInterval time_out_interval: TimeInterval = 8) {
+    public init(delegate: HBCentralDelegate, timeOutInterval time_out_interval: TimeInterval = 8, autoConnect auto_connect: Bool) {
 
         _delegate = delegate
         
         _time_out_interval = time_out_interval
+        
+        _auto_connect = auto_connect
 
         super.init()
 
@@ -98,12 +104,26 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
         
     }
 
-    public func connect(name: String) {
+    public func expect(name: String) {
 
         _expected.insert(name)
 
-        self.scan()
-
+    }
+    
+    public func expect(withNameList list: [String]) {
+        
+        for name in list {
+        
+            self.expect(name: name)
+        
+        }
+        
+    }
+    
+    public func connect(peripheral: CBPeripheral, options: [String : Any]? = nil) {
+    
+        _manager.connect(peripheral, options: options)
+    
     }
 
     public func disconnect(peripheral: CBPeripheral) {
@@ -120,10 +140,20 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
             
             _manager.scanForPeripherals(withServices: services, options: options)
             
-            _time_out_timer = Timer.scheduledTimer(timeInterval: _time_out_interval, target: self, selector: #selector(self._scanningTimeOut), userInfo: nil, repeats: false)
+            if _auto_connect {
+            
+                self.enableTimer(timeOutInterval: _time_out_interval)
 
+            }
+            
         }
 
+    }
+    
+    public func enableTimer(timeOutInterval time_out_interval: TimeInterval) {
+    
+        _time_out_timer = Timer.scheduledTimer(timeInterval: time_out_interval, target: self, selector: #selector(self._scanningTimeOut), userInfo: nil, repeats: false)
+    
     }
     
     public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
@@ -183,17 +213,25 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
         
         if _expected.contains(name) && _manager.isScanning {
             
-            _manager.stopScan()
-            
             print("\rPeripheral: \(peripheral.description)")
             
             print("Advertisment: \(advertisementData.description)")
             
             print("RSSI: \(RSSI)\n")
             
-            _connecting[peripheral.identifier] = peripheral
+            _expected.remove(name)
             
-            _manager.connect(peripheral, options: nil)
+            _waiting_for_connect[peripheral.identifier] = peripheral
+            
+            _delegate.readyForConnect(peripheral: peripheral, willAutoConnect: _auto_connect)
+            
+            if _auto_connect {
+                
+                _manager.stopScan()
+                
+                _manager.connect(_waiting_for_connect[peripheral.identifier]!)
+            
+            }
             
         }
         
@@ -201,10 +239,12 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
     
     public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
 
+        _connected[peripheral.identifier] = peripheral
+        
         if let name = peripheral.name {
             
-            _expected.remove(name)
-
+            _waiting_for_connect.removeValue(forKey: peripheral.identifier)
+            
             print("\rConnect: \(name) - \(peripheral.identifier.uuidString)\n")
 
         }
@@ -213,6 +253,8 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
             print("\rConnect: \(peripheral.identifier.uuidString)\n")
 
         }
+        
+        _delegate.connected(peripheral: peripheral)
         
         if _expected.isEmpty {
             
@@ -231,12 +273,6 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
             
         }
         
-        _connected[peripheral.identifier] = peripheral
-        
-        _connecting.removeValue(forKey: peripheral.identifier)
-        
-        _delegate.connected(peripheral: peripheral)
-
     }
 
 }

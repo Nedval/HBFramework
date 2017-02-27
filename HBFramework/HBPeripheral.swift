@@ -11,9 +11,9 @@ import CoreBluetooth
 
 public protocol HBPeripheralDelegate {
     
-    func readyForCommunicate()
+    func readyForCommunicate(peripheral: HBPeripheral)
     
-    func receive(data: Data?, fromCharacteristic characteristic: CBCharacteristic)
+    func receive(peripheral: HBPeripheral, data: Data?, fromCharacteristic characteristic: CBCharacteristic)
     
 }
 
@@ -259,7 +259,7 @@ public class HBPeripheral: NSObject, CBPeripheralDelegate {
         
         if _discover == nil {
             
-            _delegate.receive(data: characteristic.value, fromCharacteristic: characteristic)
+            _delegate.receive(peripheral: self, data: characteristic.value, fromCharacteristic: characteristic)
             
             return
             
@@ -286,7 +286,7 @@ public class HBPeripheral: NSObject, CBPeripheralDelegate {
                     
                     _communicate_characteristic = characteristic
                     
-                    _delegate.readyForCommunicate()
+                    _delegate.readyForCommunicate(peripheral: self)
                     
                 }
             

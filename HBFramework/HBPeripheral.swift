@@ -17,7 +17,7 @@ public protocol HBPeripheralDelegate {
     
 }
 
-open class HBPeripheral: NSObject, CBPeripheralDelegate {
+public class HBPeripheral: NSObject, CBPeripheralDelegate {
 
     private var _discover: [CBUUID: [CBUUID: Set<CBUUID>]]? = nil
     

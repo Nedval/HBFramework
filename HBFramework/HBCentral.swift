@@ -80,7 +80,7 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
 
     }
     
-    @objc private func _scanningTimeOut() {
+    func scanningTimeOut() {
         
         if _manager.isScanning {
         
@@ -118,7 +118,7 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
 
             _manager.scanForPeripherals(withServices: services, options: options)
             
-            _time_out_timer = Timer.scheduledTimer(timeInterval: _time_out_interval, target: self, selector: #selector(self._scanningTimeOut), userInfo: nil, repeats: false)
+            _time_out_timer = Timer.scheduledTimer(timeInterval: _time_out_interval, target: self, selector: #selector(self.scanningTimeOut), userInfo: nil, repeats: false)
 
         }
 

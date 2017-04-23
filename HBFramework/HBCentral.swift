@@ -211,27 +211,33 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
             
         }
         
-        if _expected.contains(name) && _manager.isScanning {
+        if !_manager.isScanning {
             
-            print("\rPeripheral: \(peripheral.description)")
+            return
             
-            print("Advertisment: \(advertisementData.description)")
-            
-            print("RSSI: \(RSSI)\n")
+        }
+        
+        if _expected.contains(name) {
             
             _expected.remove(name)
             
-            _waiting_for_connect[peripheral.identifier] = peripheral
+        }
+        
+        print("\rPeripheral: \(peripheral.description)")
+        
+        print("Advertisment: \(advertisementData.description)")
+        
+        print("RSSI: \(RSSI)\n")
+        
+        _waiting_for_connect[peripheral.identifier] = peripheral
+        
+        _delegate.readyForConnect(peripheral: peripheral, willAutoConnect: _auto_connect)
+        
+        if _auto_connect {
             
-            _delegate.readyForConnect(peripheral: peripheral, willAutoConnect: _auto_connect)
+            _manager.stopScan()
             
-            if _auto_connect {
-                
-                _manager.stopScan()
-                
-                _manager.connect(_waiting_for_connect[peripheral.identifier]!)
-            
-            }
+            _manager.connect(_waiting_for_connect[peripheral.identifier]!)
             
         }
         

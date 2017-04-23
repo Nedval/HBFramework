@@ -63,7 +63,7 @@ public class HBPeripheral: NSObject, CBPeripheralDelegate {
         
     }
     
-    public func write(data: Data) {
+    public func write(data: Data, type: CBCharacteristicWriteType) {
         
         guard let characteristic = _communicate_characteristic else {
         
@@ -97,12 +97,10 @@ public class HBPeripheral: NSObject, CBPeripheralDelegate {
             
             }
             
-            _peripheral.writeValue(data.subdata(in: Range(uncheckedBounds: (lower, upper))), for: characteristic, type: .withResponse)
-        
+            _peripheral.writeValue(data.subdata(in: Range(uncheckedBounds: (lower, upper))), for: characteristic, type: type)
+            
         }
-        
-        
-    
+
     }
     
     public func discoverAllServices() {
@@ -307,6 +305,18 @@ public class HBPeripheral: NSObject, CBPeripheralDelegate {
             }
             
         }
+        
+    }
+    
+    public func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?){
+        
+        print("[\(type(of: self))] didUpdateNotificationStateFor characteristic \(error)")
+        
+    }
+    
+    public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
+        
+        print("[\(type(of: self))] didWriteValueFor characteristic \(characteristic.uuid) \(error)")
         
     }
     

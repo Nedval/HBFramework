@@ -310,13 +310,13 @@ open class HBPeripheral: NSObject, CBPeripheralDelegate {
     
     public func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?){
         
-        print("[\(type(of: self))] didUpdateNotificationStateFor characteristic \(error)")
+        print("[\(type(of: self))] didUpdateNotificationStateFor characteristic \(String(describing: error))")
         
     }
     
     public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
         
-        print("[\(type(of: self))] didWriteValueFor characteristic \(characteristic.uuid) \(error)")
+        print("[\(type(of: self))] didWriteValueFor characteristic \(characteristic.uuid) \(String(describing: error))")
         
     }
     

@@ -158,7 +158,7 @@ public class HBCentral: NSObject, CBCentralManagerDelegate {
     
     public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
 
-        print("[\(type(of: self))] Disconnect Peripheral: \(peripheral.name)")
+        print("[\(type(of: self))] Disconnect Peripheral: \(String(describing: peripheral.name))")
 
     }
 
